@@ -16,16 +16,29 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
@@ -258,6 +271,30 @@ public class ChplDownloadSteps extends Base {
     }
 
     /**
+     * Assert that a listing in the file with a given ID has the expected CHPL Product Number.
+     * @param databaseId the database id of a listing
+     * @param chplProductNumber the expected chplProductNumber to be associated with the database ID
+     */
+    @And("^the download file has a listing with database id \"(.*)\" and product number \"(.*)\"$")
+    public void theDownloadFileHasListingIdWithChplProductNumber(final String id,
+            final String chplProductNumber) {
+        if(StringUtils.isEmpty(id) || StringUtils.isEmpty(chplProductNumber)) {
+            return;
+        }
+
+        File[] files = Hooks.getDownloadDirectory().listFiles();
+        for (File f : files) {
+            String fileName = f.getName();
+            //TODO: add csv parsing
+            //xml parsing
+            if (StringUtils.endsWith(fileName, ".xml")) {
+                String chplProductNumberInFile = findXmlChplProductNumber(f, id);
+                assertEquals(chplProductNumber, chplProductNumberInFile);
+            }
+        }
+    }
+
+    /**
      * Select Surveillance Activity file from drop down and download .csv file.
      */
     @When("^I download the Surveillance Activity file$")
@@ -350,5 +387,53 @@ public class ChplDownloadSteps extends Base {
         }
 
         return items;
+    }
+
+    private String findXmlChplProductNumber(final File input, final String databaseId) {
+        String chplProductNumber = null;
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(input);
+            doc.getDocumentElement().normalize();
+
+            XPath xPath =  XPathFactory.newInstance().newXPath();
+            String expression = "/results/listings/listing/id[text()='" + databaseId + "']";
+            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(
+               doc, XPathConstants.NODESET);
+    
+            if(nodeList != null && nodeList.getLength() == 1) {
+                //we found one listing with the given id which is expected.
+                Node listingIdNode = nodeList.item(0);
+                //get the parent <listing> element
+                Node listingNode = listingIdNode.getParentNode();
+                if(listingNode != null) {
+                    //get all the <listing> child elements
+                    NodeList listingChildren = listingNode.getChildNodes();
+                    if(listingChildren != null && listingChildren.getLength() > 0) {
+                        for(int i = 0; i < listingChildren.getLength(); i++) {
+                            Node listingChild = listingChildren.item(i);
+                            //look for <listing>...<chplProductNumber>...</listing> element
+                            if(listingChild.getNodeName().equalsIgnoreCase("chplProductNumber")) {
+                                chplProductNumber = listingChild.getTextContent();
+                            }
+                        }
+                    }
+                }
+            } else if (nodeList == null || nodeList.getLength() == 0) {
+                fail("No listing was found with the given ID.");
+            } else if (nodeList.getLength() > 1) {
+                fail("More than one listing was found with the given ID.");
+            }
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (XPathExpressionException e) {
+            e.printStackTrace();
+        }
+        return chplProductNumber;
     }
 }
