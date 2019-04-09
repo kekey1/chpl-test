@@ -12,6 +12,11 @@ public class LoginPage {
     private static WebElement element = null;
 
     /**
+     * Private constructor for utility class.
+     */
+    private LoginPage() {}
+
+    /**
      * Returns log in button.
      * @param driver WebDriver
      * @return log in button element

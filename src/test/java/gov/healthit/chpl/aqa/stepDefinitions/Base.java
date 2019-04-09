@@ -69,7 +69,7 @@ public class Base {
     }
 
     protected void sendKeys(final WebElement element, final String keys) {
-        for (int i = 0; i < keys.length(); i++){
+        for (int i = 0; i < keys.length(); i++) {
             element.sendKeys(Character.toString(keys.charAt(i)));
             this.wait.until(
                     ExpectedConditions.attributeContains(element, "value", keys.substring(0, i)));
