@@ -80,12 +80,12 @@ public class OncAcbManagementSteps extends Base {
     @When("^I edit ACB name to be \"([^\"]*)\" and edit it back to \"([^\"]*)\"$")
     public void editAcbName(final String newName, final String oldName) {
         OncAcbManagementPage.oncACBNameOnEditForm(getDriver()).clear();
-        OncAcbManagementPage.oncACBNameOnEditForm(getDriver()).sendKeys(newName);
+        sendKeys(OncAcbManagementPage.oncACBNameOnEditForm(getDriver()), newName);
         OncAcbManagementPage.saveONCACB(getDriver()).click();
         WebElement link = OncAcbManagementPage.editONCACB(getDriver());
         ((JavascriptExecutor) getDriver()).executeScript("arguments[0].click();", link);
         OncAcbManagementPage.oncACBNameOnEditForm(getDriver()).clear();
-        OncAcbManagementPage.oncACBNameOnEditForm(getDriver()).sendKeys(oldName);
+        sendKeys(OncAcbManagementPage.oncACBNameOnEditForm(getDriver()), oldName);
         OncAcbManagementPage.saveONCACB(getDriver()).click();
     }
 }

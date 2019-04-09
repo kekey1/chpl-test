@@ -5,7 +5,9 @@ import java.io.FileNotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 /** Base class for step definition files. */
@@ -64,6 +66,14 @@ public class Base {
 
     public void setWait(final WebDriverWait wait) {
         this.wait = wait;
+    }
+
+    protected void sendKeys(final WebElement element, final String keys) {
+        for (int i = 0; i < keys.length(); i++){
+            element.sendKeys(Character.toString(keys.charAt(i)));
+            this.wait.until(
+                    ExpectedConditions.attributeContains(element, "value", keys.substring(0, i)));
+        }
     }
 
     /**
