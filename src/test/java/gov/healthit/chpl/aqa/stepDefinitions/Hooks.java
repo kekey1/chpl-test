@@ -15,9 +15,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.CapabilityType;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.events.AbstractWebDriverEventListener;
-//import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 import org.openqa.selenium.support.events.WebDriverEventListener;
 
@@ -72,19 +70,14 @@ public class Hooks {
          * Save Chrome Options
          */
         ChromeOptions options = new ChromeOptions();
-        HashMap<String, Object> chromeOptionsMap = new HashMap<String, Object>();
         options.setExperimentalOption("prefs", chromePrefs);
         chromePrefs.put("safebrowsing.enabled", "true");
         options.addArguments("--safebrowsing-disable-download-protection");
         options.addArguments("disable-popup-blocking");
-
-        DesiredCapabilities cap = DesiredCapabilities.chrome();
-        cap.setCapability(ChromeOptions.CAPABILITY, chromeOptionsMap);
-        cap.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
-        cap.setCapability(ChromeOptions.CAPABILITY, options);
+        options.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
 
         screenshotPath = System.getProperty("user.dir") + File.separator + "test-output";
-        driver = new EventFiringWebDriver(new ChromeDriver(cap));
+        driver = new EventFiringWebDriver(new ChromeDriver(options));
         driver.manage().timeouts().implicitlyWait(DELAY, TimeUnit.SECONDS);
         WebDriverEventListener errorListener = new AbstractWebDriverEventListener() {
             @Override

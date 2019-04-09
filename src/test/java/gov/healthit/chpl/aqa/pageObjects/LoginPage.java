@@ -7,7 +7,7 @@ import org.openqa.selenium.WebElement;
 /**
  * Class LoginPage definition.
  */
-public class LoginPage {
+public final class LoginPage {
 
     private static WebElement element = null;
 
